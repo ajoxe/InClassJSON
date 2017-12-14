@@ -1,5 +1,6 @@
 package nyc.c4q.jsoninclass;
 
+import android.content.Intent;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -7,13 +8,24 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Serializable;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import nyc.c4q.jsoninclass.controller.MessageAdapter;
@@ -26,16 +38,130 @@ public class MainActivity extends AppCompatActivity {
     private List<String> jsonMessageList;
     private static final String TAG = "MainActivity";
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        QuestionOne questionOne = new QuestionOne();
-        questionOne.businessLogic();
-        QuestionTwo questionTwo = new QuestionTwo();
-        questionTwo.businessLogic();
+       // QuestionOne questionOne = new QuestionOne();
+        //questionOne.businessLogic();
+        //QuestionTwo questionTwo = new QuestionTwo();
+        //questionTwo.businessLogic();
+        QuestionThree questionThree = new QuestionThree();
+        questionThree.setRecyclerView();
+
+
+
+
+        /*Question 3
+        Open up a new Android Studio Project, create your own JSONObjects and JSONArrays, and parse them into a List in your app's MainActivity.
+
+        When done, use that list in a Linear Layout RecyclerView. Add additional logic so that, when an item is clicked, the user is moved to another activity, where their selection's data is displayed.
+
+        Push to a Github Repo, and paste the link below:*/
+
+
     }
+
+    private class QuestionThree{
+
+        public void setRecyclerView(){
+             View.OnClickListener onClickListener = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent detailIntent = new Intent(MainActivity.this, QuestionThreeDetailActivity.class);
+                    startActivity(detailIntent);
+                }
+            };
+            RecyclerView termsRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+            TermData termData = new TermData();
+            termData = termData.setTermsList();
+            TermAdapter termAdapter = new TermAdapter(termData, onClickListener);
+            termsRecyclerView.setAdapter(termAdapter);
+            termsRecyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+        }
+
+
+
+        public class TermData extends ArrayList<Term>{
+            private TermData termData;
+
+            private TermData(){
+
+            }
+            private TermData setTermsList() {
+                Type collectionType = new TypeToken<Collection<Term>>() {
+                }.getType();
+                Gson gs = new Gson();
+                Collection<Term> terms = null;
+                InputStream is = getApplicationContext().getResources().openRawResource(R.raw.basicandroidterms);
+                InputStreamReader isr = new InputStreamReader(is);
+                terms = gs.fromJson(isr, collectionType);
+                termData = new TermData();
+                termData.addAll(terms);
+                return termData;
+            }
+
+        }
+
+
+        public class TermViewHolder extends RecyclerView.ViewHolder{
+            TextView termView;
+            TextView definition;
+            public TermViewHolder(View itemView) {
+                super(itemView);
+                termView = (TextView) itemView.findViewById(R.id.term_text_view);
+                definition = (TextView) itemView.findViewById(R.id.definition_text_view);
+            }
+
+            public void onBind (Term term){
+                termView.setText(term.term);
+                definition.setText(term.definition);
+            }
+        }
+
+        public class TermAdapter extends RecyclerView.Adapter<TermViewHolder> {
+            private TermData termDataList;
+            private View.OnClickListener termClickListener;
+
+            public TermAdapter(TermData termDataList, View.OnClickListener termClickListener){
+                this.termDataList = termDataList;
+                this.termClickListener = termClickListener;
+            }
+
+            @Override
+            public TermViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+
+                View childView = LayoutInflater.from(parent.getContext()).inflate(R.layout.term_item_view, parent, false);
+                return new TermViewHolder(childView);
+            }
+
+            @Override
+            public void onBindViewHolder(TermViewHolder holder, int position) {
+
+                Term term = termDataList.get(position);
+                holder.onBind(term);
+                holder.itemView.setOnClickListener(termClickListener);
+            }
+
+            @Override
+            public int getItemCount() {
+                return termDataList.size();
+            }
+        }
+
+
+        private class Term implements Serializable{
+            String term;
+            String definition;
+        }
+
+
+    }
+
+
 
     private class QuestionTwo {
 
@@ -184,4 +310,121 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+
 }
+
+
+
+    /*Question 4
+    Open up a new  Android Studio Project, copy the following string, and parse it into a List in your app's MainActivity:
+
+        {
+        "description": "Birds of Antarctica, grouped by family",
+        "source": "https://en.wikipedia.org/wiki/List_of_birds_of_Antarctica",
+        "birds": [
+        {
+        "family": "Albatrosses",
+        "members": [
+        "Wandering albatross",
+        "Grey-headed albatross",
+        "Black-browed albatross",
+        "Sooty albatross",
+        "Light-mantled albatross"
+        ]
+        },
+        {
+        "family": "Cormorants",
+        "members": [
+        "Antarctic shag",
+        "Imperial shag",
+        "Crozet shag"
+        ]
+        },
+        {
+        "family": "Diving petrels",
+        "members": [
+        "South Georgia diving petrel",
+        "Common diving petrel"
+        ]
+        },
+        {
+        "family": "Ducks, geese and swans",
+        "members": [
+        "Yellow-billed pintail"
+        ]
+        },
+        {
+        "family": "Gulls",
+        "members": [
+        "Kelp gull"
+        ]
+        },
+        {
+        "family": "Penguins",
+        "members": [
+        "King penguin",
+        "Emperor penguin",
+        "Gentoo penguin",
+        "Adelie penguin",
+        "Chinstrap penguin",
+        "Rockhopper penguin",
+        "Macaroni penguin"
+        ]
+        },
+        {
+        "family": "Shearwaters and petrels",
+        "members": [
+        "Antarctic giant petrel",
+        "Hall's giant petrel",
+        "Southern fulmar",
+        "Antarctic petrel",
+        "Cape petrel",
+        "Snow petrel",
+        "Great-winged petrel",
+        "White-headed petrel",
+        "Blue petrel",
+        "Broad-billed prion",
+        "Salvin's prion",
+        "Antarctic prion",
+        "Slender-billed prion",
+        "Fairy prion",
+        "Grey petrel",
+        "White-chinned petrel",
+        "Kerguelen petrel",
+        "Sooty shearwater"
+        ]
+        },
+        {
+        "family": "Sheathbills",
+        "members": [
+        "Snowy sheathbill"
+        ]
+        },
+        {
+        "family": "Skuas and jaegers",
+        "members": [
+        "South polar skua",
+        "Brown skua"
+        ]
+        },
+        {
+        "family": "Storm petrels",
+        "members": [
+        "Grey-backed storm petrel",
+        "Wilson's storm petrel",
+        "Black-bellied storm petrel"
+        ]
+        },
+        {
+        "family": "Terns",
+        "members": [
+        "Arctic tern",
+        "Antarctic tern"
+        ]
+        }
+        ]
+        }
+        Using a Linear Layout RecyclerView, display this data using CardViews.
+
+        Push to a Github Repo, and paste the link below:*/
